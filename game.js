@@ -6,8 +6,6 @@ canvas.height=innerHeight;
 
 class Ship{
     constructor() {
-        
-      
         this.velocity={
             x: 0,
             y: 0
@@ -38,7 +36,40 @@ class Ship{
     }
 }
 
+class Projetile{
+    constructor({position, velocity}){
+        this.position=position;
+        this.velocity = velocity;
+
+        this.radius = 3;
+
+    }
+    draw() {
+        a.beginPath();
+        a.arc(this.position.x, this.position.y ,this.radius ,0 ,Math.PI*2);
+        a.fillStyle='red';
+        a.fill();
+        a.closePath();
+    }
+    update(){
+        this.draw();
+        this.position.x += this.velocity.x;
+        this.position.y += this.velocity.y;
+    }
+}
+
 const player=new Ship();
+const projectiles=[new Projetile({
+    position: {
+        x :300,
+        y :300
+    },
+    velocity : {
+        x: 0,
+        y: -5
+    }
+})
+];
 const keys={
     a: {
         pressed:false
@@ -67,6 +98,9 @@ function animate(){
         player.velocity.x=0;
     }
     player.update();
+    projectiles.forEach(projectile =>{
+        projectile.update();
+    } )
 }
 animate();
 
