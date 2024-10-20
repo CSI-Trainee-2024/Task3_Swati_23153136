@@ -59,17 +59,7 @@ class Projetile{
 }
 
 const player=new Ship();
-const projectiles=[new Projetile({
-    position: {
-        x :300,
-        y :300
-    },
-    velocity : {
-        x: 0,
-        y: -5
-    }
-})
-];
+const projectiles=[];
 const keys={
     a: {
         pressed:false
@@ -98,8 +88,12 @@ function animate(){
         player.velocity.x=0;
     }
     player.update();
-    projectiles.forEach(projectile =>{
-        projectile.update();
+    projectiles.forEach((projectile , index) =>{
+    if(projectile.position.y + projectile.radius <=0){
+        setTimeout(()=>{
+        projectiles.splice(index ,1)},0);
+    }else{
+        projectile.update();}
     } )
 }
 animate();
@@ -122,7 +116,16 @@ window.addEventListener("keydown",(event)=>{
             console.log('up');
             break;
         case ' ':
-            console.log('space');
+            projectiles.push(new Projetile({
+                position: {
+                    x :player.position.x + player.width / 2,
+                    y :player.position.y
+                },
+                velocity : {
+                    x: 0,
+                    y: -10
+                }
+            }))
             break;
     }
 });
@@ -144,7 +147,7 @@ window.addEventListener("keyup",(event)=>{
             console.log('up');
             break;
         case ' ':
-            console.log('space');
+            //console.log('space');
             break;
     }
 })
