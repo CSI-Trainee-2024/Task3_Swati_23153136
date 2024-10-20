@@ -1,11 +1,41 @@
-const canvas=document.querySelector('canvas')
-const a=canvas.getContext('2d')
-canvas.width=innerWidth
-canvas.height=innerHeight
-class player{
-    constructor(){
+const canvas=document.querySelector('canvas');
+const a=canvas.getContext('2d');
+
+canvas.width=innerWidth;
+canvas.height=innerHeight;
+
+class Player{
+    constructor() {
         this.position={
-            
+            x: 200,
+            y: 200
         }
+        this.velocity={
+            x: 0,
+            y: 0
+        }
+        const image=new Image();
+        image.src="shipnew.png";
+ 
+        this.image=image;
+        this.width=100;
+        this.height=100;
+
+    }
+    draw(){
+        //a.fillStyle='red';
+        //c.fillRect(this.position.x, this.position.y ,this.width , this.height);
+        a.drawImage(this.image ,this.position.x ,this.position.y, this.width, this.height);
     }
 }
+
+const player=new Player();
+player.draw();
+
+function animate(){
+    requestAnimationFrame(animate);
+    a.fillRect(0 , 0, canvas.width, canvas.height);
+    player.draw();
+
+}
+animate();
