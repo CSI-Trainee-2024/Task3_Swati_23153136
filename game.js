@@ -36,7 +36,7 @@ class Ship{
     }
 }
 
-class Projetile{
+class Projectile{
     constructor({position, velocity}){
         this.position=position;
         this.velocity = velocity;
@@ -57,38 +57,67 @@ class Projetile{
         this.position.y += this.velocity.y;
     }
 }
-class Invader{
+class InvaderProjectile {
+    constructor({position, velocity}) {
+        this.position = position;
+        this.velocity = velocity;
+        this.width = 3;
+        this.height = 10;
+    }
+    draw() {
+        a.fillStyle = 'red';
+        a.fillRect(this.position.x, this.position.y, this.width, this.height);
+    }
+    update() {
+        this.draw();
+        this.position.y += this.velocity.y;
+    }
+}
+
+class Invader {
     constructor({position}) {
-        this.velocity={
+        this.velocity = {
             x: 0,
             y: 0
+        };
+        const image = new Image();
+        image.src = "invader.png";
+        image.onload = () => {
+            const scale = 0.10;
+            this.image = image;
+            this.width = image.width * scale;
+            this.height = image.height * scale;
+            this.position = {
+                x: position.x,
+                y: position.y
+            };
+        };
+    }
+    draw() {
+        if (this.image && this.width && this.height)
+            a.drawImage(this.image, this.position.x, this.position.y, this.width, this.height);
+    }
+    update({velocity}) {
+        if (this.image && this.width && this.height) {
+            this.position.x += velocity.x;
+            this.position.y += velocity.y;
+            this.draw();
         }
-        const image=new Image();
-        image.src="invader.png";
-        image.onload=()=>{
-        const scale=0.10;
-        this.image=image;
-        this.width=image.width*scale;
-        this.height=image.height*scale;
-        this.position={
-            x: position.x,
-            y: position.y
-        }
+    }
+    shoot(invaderProjectiles) {
+        invaderProjectiles.push(new InvaderProjectile({
+            position: {
+                x: this.position.x + this.width / 2,
+                y: this.position.y + this.height
+            },
+            velocity: {
+                x: 0,
+                y: 5
+            }
+        }));
     }
 }
-    draw(){
-        if(this.image && this.width && this.height)
-        a.drawImage(this.image ,this.position.x ,this.position.y, this.width, this.height);
-    }
-    update({velocity}){
-        if(this.image && this.width && this.height){
-        this.position.x +=velocity.x;
-        this.position.y +=velocity.y;
-        this.draw();}
-        
-        
-    }
-}
+
 
 class Grid{
     constructor(){
@@ -133,6 +162,7 @@ class Grid{
 const player=new Ship();
 const projectiles=[];
 const grids=[];
+const InvaderProjectiles=[];
 const keys={
     a: {
         pressed:false
@@ -153,7 +183,15 @@ function animate(){
     requestAnimationFrame(animate);
     a.fillStyle='black';
     a.fillRect(0 , 0, canvas.width, canvas.height);
-    player.draw();
+    player.update();
+    InvaderProjectiles.forEach((invaderProjectile, index) =>{
+        if(invaderProjectile.position.y + invaderProjectile.height  >= canvas.height){
+            invaderProjectiles.splice(index , 1)
+        }
+        else{
+            invaderProjectiles.update();
+        }
+    })
     if (keys.a.pressed && player.position.x >=0){
         player.velocity.x = -8;
     }
@@ -166,13 +204,16 @@ function animate(){
     player.update();
     projectiles.forEach((projectile , index) =>{
     if(projectile.position.y + projectile.radius <=0){
-        setTimeout(()=>{
-        projectiles.splice(index ,1)},0);
+        projectiles.splice(index ,1);
     }else{
         projectile.update();}
     } )
     grids.forEach((grid,gridIndex) => {
         grid.update();
+
+        if(frames %100 ===0 && grid.invaders.length>0){
+            grid.invaders[Math.floor(Math.random()*grid.invaders.length)].shoot(InvaderProjetiles);
+        }
         grid.invaders.forEach((invader, i) => {
             invader.update({ velocity: grid.velocity });
             projectiles.forEach((projectile, j) => {
@@ -180,10 +221,8 @@ function animate(){
                     projectile.position.x + projectile.radius >= invader.position.x &&
                     projectile.position.x - projectile.radius <= invader.position.x + invader.width && 
                     projectile.position.y + projectile.radius >= invader.position.y) {
-                    
-                    setTimeout(() => {
-                        const invaderFound = grid.invaders.find(invader2 => invader2 === invader); // Added return here
-                        const projectileFound = projectiles.find(projectile2 => projectile2 === projectile); // Added return here
+                        const invaderFound = grid.invaders.find(invader2 => invader2 === invader); 
+                        const projectileFound = projectiles.find(projectile2 => projectile2 === projectile); 
                 
                         if (invaderFound && projectileFound) {
                             grid.invaders.splice(i, 1);  
@@ -200,7 +239,6 @@ function animate(){
                                 grids.splice(gridIndex ,1);
                             }
                         }
-                    }, 0);
                 }
                 
             });
@@ -214,6 +252,7 @@ function animate(){
         frames=0;
         
     }
+    
     frames++;
     
 }
