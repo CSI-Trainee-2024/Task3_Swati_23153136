@@ -57,9 +57,65 @@ class Projetile{
         this.position.y += this.velocity.y;
     }
 }
+class Invader{
+    constructor({position}) {
+        this.velocity={
+            x: 0,
+            y: 0
+        }
+        const image=new Image();
+        image.src="invader.png";
+        image.onload=()=>{
+        const scale=0.15;
+        this.image=image;
+        this.width=image.width*scale;
+        this.height=image.height*scale;
+        this.position={
+            x: position.x,
+            y: position.y
+        }
+    }
+}
+    draw(){
+        if(this.image && this.width && this.height)
+        a.drawImage(this.image ,this.position.x ,this.position.y, this.width, this.height);
+    }
+    update(){
+        if(this.image && this.width && this.height){
+        this.position.x +=this.velocity.x;
+        this.position.y +=this.velocity.y;
+        this.draw();}
+        
+        
+    }
+}
+
+class Grid{
+    constructor(){
+        this.position= {
+            x: 0 ,
+            y: 0
+        },
+        this.velocity= {
+            x: 0,
+            y: 0
+        },
+        this.invaders=[]
+        for(let i=0 ; i<10 ;i++){
+            this.invaders.push(new Invader({position: {
+                x :0,
+                y: 0
+            }}));
+        }
+    }
+    update(){
+
+    }
+}
 
 const player=new Ship();
 const projectiles=[];
+const grids=[new Grid];
 const keys={
     a: {
         pressed:false
@@ -95,6 +151,13 @@ function animate(){
     }else{
         projectile.update();}
     } )
+    grids.forEach(grid => {
+        grid.update();
+        grid.invaders.forEach(invader => {
+            invader.update();
+        });
+    });
+    
 }
 animate();
 
