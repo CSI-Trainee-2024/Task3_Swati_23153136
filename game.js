@@ -10,6 +10,7 @@ class Ship {
             x: 0,
             y: 0
         };
+        this.opacity=1;
         const image = new Image();
         image.src = "shipnew.png";
         image.onload = () => {
@@ -24,8 +25,11 @@ class Ship {
         };
     }
     draw() {
+        a.save();
+        a.globalAlpha=this.opacity
         if (this.image && this.width && this.height)
             a.drawImage(this.image, this.position.x, this.position.y, this.width, this.height);
+        a.restore()
     }
     update() {
         if (this.image && this.width && this.height)
@@ -60,11 +64,11 @@ class Particle {
         this.velocity = velocity;
         this.radius = radius;
         this.color = color;
-        this.opacity = 1; // Fixed from -1 to 1
+        this.opacity = 1; 
     }
     draw() {
         a.save();
-        a.globalAlpha = this.opacity; // Fixed a.save() to a.save();
+        a.globalAlpha = this.opacity; 
         a.beginPath();
         a.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2);
         a.fillStyle = this.color;
@@ -202,6 +206,10 @@ const keys = {
 
 let frames = 0;
 let ranInterval = Math.floor((Math.random() * 500) + 500);
+let game ={
+    over: false,
+    active:true
+}
 function createParticles({ object, color }) {
     for (let k = 0; k < 15; k++) {
         particles.push(new Particle({
@@ -220,6 +228,7 @@ function createParticles({ object, color }) {
 }
 
 function animate() {
+    if (!game.active) return
     requestAnimationFrame(animate);
     a.fillStyle = 'black';
     a.fillRect(0, 0, canvas.width, canvas.height);
@@ -240,7 +249,12 @@ function animate() {
                 invaderProjectile.position.x + invaderProjectile.width >= player.position.x &&
                 invaderProjectile.position.x <= player.position.x + player.width) {
                 invaderProjectiles.splice(index, 1);
+                player.opacity=0;
+                game.over=true;
                 console.log("You lose");
+                setTimeout(() =>{
+                    game.active=false;
+                },2000);
                 createParticles({
                     object: player,
                     color: 'white'
@@ -320,6 +334,7 @@ function animate() {
 animate();
 
 window.addEventListener("keydown", (event) => {
+    if (game.over) return
     switch (event.key) {
         case 'a':
             keys.a.pressed = true;

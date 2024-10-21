@@ -2,3 +2,8 @@ body{
     margin: 0;
     overflow:hidden;
 }
+p{
+    position: fixed;
+    z-index: 10;
+    color: white;
+}
