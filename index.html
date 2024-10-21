@@ -4,12 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Space Invader Game</title>
-    <script src="game.js" defer ></script>
+    <script src="game.js" defer></script>
     <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
-    <canvas></canvas>
-    <p><span>Score:</span><span>0</span></p>
-    
+    <div class="game-container">
+        <p class="score-display">
+            <span>Score: </span><span id="score">0</span>
+        </p>
+        <canvas></canvas>
+    </div>
 </body>
 </html>
