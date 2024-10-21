@@ -41,7 +41,7 @@ class Projetile{
         this.position=position;
         this.velocity = velocity;
 
-        this.radius = 3;
+        this.radius = 4;
 
     }
     draw() {
@@ -155,10 +155,10 @@ function animate(){
     a.fillRect(0 , 0, canvas.width, canvas.height);
     player.draw();
     if (keys.a.pressed && player.position.x >=0){
-        player.velocity.x = -5;
+        player.velocity.x = -8;
     }
     else if(keys.d.pressed && player.position.x +player.width <canvas.width){
-        player.velocity.x=5;
+        player.velocity.x=8;
     }
     else{
         player.velocity.x=0;
@@ -171,17 +171,38 @@ function animate(){
     }else{
         projectile.update();}
     } )
-    grids.forEach(grid => {
+    grids.forEach((grid,gridIndex) => {
         grid.update();
         grid.invaders.forEach((invader, i) => {
             invader.update({ velocity: grid.velocity });
             projectiles.forEach((projectile, j) => {
-                if (projectile.position.y - projectile.radius <= invader.position.y + invader.height) {
+                if (projectile.position.y - projectile.radius <= invader.position.y + invader.height && 
+                    projectile.position.x + projectile.radius >= invader.position.x &&
+                    projectile.position.x - projectile.radius <= invader.position.x + invader.width && 
+                    projectile.position.y + projectile.radius >= invader.position.y) {
+                    
                     setTimeout(() => {
-                        grid.invaders.splice(i, 1);
-                        projectiles.splice(j, 1);
+                        const invaderFound = grid.invaders.find(invader2 => invader2 === invader); // Added return here
+                        const projectileFound = projectiles.find(projectile2 => projectile2 === projectile); // Added return here
+                
+                        if (invaderFound && projectileFound) {
+                            grid.invaders.splice(i, 1);  
+                            projectiles.splice(j, 1);
+                            
+                            if (grid.invaders.length > 0){
+                                const firstInvader = grid.invaders[0];
+                                const lastInvader = grid.invaders[grid.invaders.length -1];
+
+                                grid.width= lastInvader.position.x - firstInvader.position.x + lastInvader.width;
+                                grid.position.x=firstInvader.position.x;
+                            }
+                            else{
+                                grids.splice(gridIndex ,1);
+                            }
+                        }
                     }, 0);
                 }
+                
             });
         });
     });
