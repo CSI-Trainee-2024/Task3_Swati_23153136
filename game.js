@@ -35,7 +35,7 @@ class Ship {
 }
 
 class Projectile {
-    constructor({position, velocity}) {
+    constructor({ position, velocity }) {
         this.position = position;
         this.velocity = velocity;
         this.radius = 4;
@@ -53,9 +53,29 @@ class Projectile {
         this.position.y += this.velocity.y;
     }
 }
+class Particle {
+    constructor({ position, velocity,radius, color }) {
+        this.position = position;
+        this.velocity = velocity;
+        this.radius = radius;
+        this.color=color;
+    }
+    draw() {
+        a.beginPath();
+        a.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2);
+        a.fillStyle = this.color;
+        a.fill();
+        a.closePath();
+    }
+    update() {
+        this.draw();
+        this.position.x += this.velocity.x;
+        this.position.y += this.velocity.y;
+    }
+}
 
 class InvaderProjectile {
-    constructor({position, velocity}) {
+    constructor({ position, velocity }) {
         this.position = position;
         this.velocity = velocity;
         this.width = 3;
@@ -72,7 +92,7 @@ class InvaderProjectile {
 }
 
 class Invader {
-    constructor({position}) {
+    constructor({ position }) {
         this.velocity = {
             x: 0,
             y: 0
@@ -94,7 +114,7 @@ class Invader {
         if (this.image && this.width && this.height)
             a.drawImage(this.image, this.position.x, this.position.y, this.width, this.height);
     }
-    update({velocity}) {
+    update({ velocity }) {
         if (this.image && this.width && this.height) {
             this.position.x += velocity.x;
             this.position.y += velocity.y;
@@ -120,11 +140,11 @@ class Grid {
         this.position = {
             x: 0,
             y: 0
-        },
+        };
         this.velocity = {
             x: 5,
             y: 0
-        },
+        };
         this.invaders = [];
 
         const rows = Math.floor(Math.random() * 5 + 2);
@@ -160,7 +180,8 @@ class Grid {
 const player = new Ship();
 const projectiles = [];
 const grids = [];
-const InvaderProjectiles = [];
+const invaderProjectiles = [];
+const particles=[];
 const keys = {
     a: {
         pressed: false
@@ -171,7 +192,7 @@ const keys = {
     space: {
         pressed: false
     }
-}
+};
 
 let frames = 0;
 let ranInterval = Math.floor((Math.random() * 500) + 500);
@@ -181,13 +202,22 @@ function animate() {
     a.fillStyle = 'black';
     a.fillRect(0, 0, canvas.width, canvas.height);
     player.update();
-    InvaderProjectiles.forEach((invaderProjectile, index) => {
+    particles.forEach(particle =>{
+        particle.update();
+    })
+    invaderProjectiles.forEach((invaderProjectile, index) => {
         if (invaderProjectile.position.y + invaderProjectile.height >= canvas.height) {
-            InvaderProjectiles.splice(index, 1);
+            invaderProjectiles.splice(index, 1);
         } else {
             invaderProjectile.update();
+            if (invaderProjectile.position.y + invaderProjectile.height >= player.position.y && 
+                invaderProjectile.position.x + invaderProjectile.width >= player.position.x && 
+                invaderProjectile.position.x <= player.position.x + player.width) {
+                console.log("You lose");
+            }
         }
     });
+
     if (keys.a.pressed && player.position.x >= 0) {
         player.velocity.x = -8;
     } else if (keys.d.pressed && player.position.x + player.width < canvas.width) {
@@ -195,7 +225,7 @@ function animate() {
     } else {
         player.velocity.x = 0;
     }
-    player.update();
+
     projectiles.forEach((projectile, index) => {
         if (projectile.position.y + projectile.radius <= 0) {
             projectiles.splice(index, 1);
@@ -203,30 +233,50 @@ function animate() {
             projectile.update();
         }
     });
+
     grids.forEach((grid, gridIndex) => {
         grid.update();
-
+    
         if (frames % 100 === 0 && grid.invaders.length > 0) {
-            grid.invaders[Math.floor(Math.random() * grid.invaders.length)].shoot(InvaderProjectiles);
+            grid.invaders[Math.floor(Math.random() * grid.invaders.length)].shoot(invaderProjectiles);
         }
+    
         grid.invaders.forEach((invader, i) => {
             invader.update({ velocity: grid.velocity });
+    
             projectiles.forEach((projectile, j) => {
-                if (projectile.position.y - projectile.radius <= invader.position.y + invader.height &&
+                if (
+                    projectile.position.y - projectile.radius <= invader.position.y + invader.height &&
                     projectile.position.x + projectile.radius >= invader.position.x &&
                     projectile.position.x - projectile.radius <= invader.position.x + invader.width &&
-                    projectile.position.y + projectile.radius >= invader.position.y) {
+                    projectile.position.y + projectile.radius >= invader.position.y
+                ) {
+                    for (let k = 0; k < 15; k++) {
+                        particles.push(new Particle({
+                            position: {
+                                x: invader.position.x + invader.width / 2,
+                                y: invader.position.y + invader.height / 2
+                            },
+                            velocity: {
+                                x: (Math.random() - 0.5)*3,
+                                y: (Math.random() - 0.50)*3
+                            },
+                            radius: Math.random() * 3,
+                            color: '#BAA0DE'
+                        }));
+                    }
+    
                     const invaderFound = grid.invaders.find(invader2 => invader2 === invader);
                     const projectileFound = projectiles.find(projectile2 => projectile2 === projectile);
-
+    
                     if (invaderFound && projectileFound) {
                         grid.invaders.splice(i, 1);
                         projectiles.splice(j, 1);
-
+    
                         if (grid.invaders.length > 0) {
                             const firstInvader = grid.invaders[0];
                             const lastInvader = grid.invaders[grid.invaders.length - 1];
-
+    
                             grid.width = lastInvader.position.x - firstInvader.position.x + lastInvader.width;
                             grid.position.x = firstInvader.position.x;
                         } else {
@@ -237,8 +287,7 @@ function animate() {
             });
         });
     });
-
-    console.log(grids);
+     
     if (frames % ranInterval == 0) {
         grids.push(new Grid());
         ranInterval = Math.floor((Math.random() * 500) + 500);
@@ -247,23 +296,16 @@ function animate() {
 
     frames++;
 }
+
 animate();
 
 window.addEventListener("keydown", (event) => {
     switch (event.key) {
         case 'a':
-            console.log('left');
             keys.a.pressed = true;
             break;
         case 'd':
-            console.log('right');
             keys.d.pressed = true;
-            break;
-        case 's':
-            console.log('down');
-            break;
-        case 'w':
-            console.log('up');
             break;
         case ' ':
             projectiles.push(new Projectile({
@@ -283,22 +325,10 @@ window.addEventListener("keydown", (event) => {
 window.addEventListener("keyup", (event) => {
     switch (event.key) {
         case 'a':
-            console.log('left');
             keys.a.pressed = false;
             break;
         case 'd':
-            console.log('right');
-            player.velocity.x = 0;
             keys.d.pressed = false;
-            break;
-        case 's':
-            console.log('down');
-            break;
-        case 'w':
-            console.log('up');
-            break;
-        case ' ':
-            //console.log('space');
             break;
     }
 });
