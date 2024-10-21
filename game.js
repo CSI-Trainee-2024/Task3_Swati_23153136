@@ -66,7 +66,7 @@ class Invader{
         const image=new Image();
         image.src="invader.png";
         image.onload=()=>{
-        const scale=0.15;
+        const scale=0.10;
         this.image=image;
         this.width=image.width*scale;
         this.height=image.height*scale;
@@ -80,10 +80,10 @@ class Invader{
         if(this.image && this.width && this.height)
         a.drawImage(this.image ,this.position.x ,this.position.y, this.width, this.height);
     }
-    update(){
+    update({velocity}){
         if(this.image && this.width && this.height){
-        this.position.x +=this.velocity.x;
-        this.position.y +=this.velocity.y;
+        this.position.x +=velocity.x;
+        this.position.y +=velocity.y;
         this.draw();}
         
         
@@ -97,25 +97,42 @@ class Grid{
             y: 0
         },
         this.velocity= {
-            x: 0,
+            x: 5,
             y: 0
         },
         this.invaders=[]
-        for(let i=0 ; i<10 ;i++){
+
+        const rows =Math.floor(Math.random()*5 + 2);
+        const columns=Math.floor(Math.random()*7 +5);
+        const imagewidth=41; 
+
+        this.width=columns*imagewidth
+
+        for(let i=0 ; i<columns ;i++){
+            for(let j=0; j<rows ; j++){
             this.invaders.push(new Invader({position: {
-                x :0,
-                y: 0
+                x : i*imagewidth,
+                y: j*imagewidth
             }}));
-        }
+        }}
     }
     update(){
+        this.position.x += this.velocity.x;
+        this.position.y +=this.velocity.y;
 
+        this.velocity.y=0;
+
+        if (this.position.x + this.width >= canvas.width || this.position.x <=0){
+            this.velocity.x = -this.velocity.x;
+            this.velocity.y = 41;
+    
+        } 
     }
 }
 
 const player=new Ship();
 const projectiles=[];
-const grids=[new Grid];
+const grids=[];
 const keys={
     a: {
         pressed:false
@@ -128,6 +145,9 @@ const keys={
     }
 
 }
+
+let frames =0;
+let ranInterval=Math.floor((Math.random() * 500) +500);
 
 function animate(){
     requestAnimationFrame(animate);
@@ -153,10 +173,27 @@ function animate(){
     } )
     grids.forEach(grid => {
         grid.update();
-        grid.invaders.forEach(invader => {
-            invader.update();
+        grid.invaders.forEach((invader, i) => {
+            invader.update({ velocity: grid.velocity });
+            projectiles.forEach((projectile, j) => {
+                if (projectile.position.y - projectile.radius <= invader.position.y + invader.height) {
+                    setTimeout(() => {
+                        grid.invaders.splice(i, 1);
+                        projectiles.splice(j, 1);
+                    }, 0);
+                }
+            });
         });
     });
+
+    console.log(grids);
+    if (frames % ranInterval==0){
+        grids.push(new Grid());
+        ranInterval=Math.floor((Math.random() * 500) +500);
+        frames=0;
+        
+    }
+    frames++;
     
 }
 animate();
